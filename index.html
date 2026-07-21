@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard 80 Aniversario - Avance de Pedidos por Tienda</title>
+    <!-- Google Fonts & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <!-- Confetti & SheetJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --md-sys-color-primary: #00639b;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #cbe6ff;
+            --md-sys-color-on-primary-container: #001d33;
+            --md-sys-color-secondary: #51606f;
+            --md-sys-color-secondary-container: #d5e4f6;
+            --md-sys-color-surface: #f8f9fe;
+            --md-sys-color-surface-container: #edf0f7;
+            --md-sys-color-surface-card: #ffffff;
+            --md-sys-color-on-surface: #191c1e;
+            --md-sys-color-on-surface-variant: #41474d;
+            --md-sys-color-outline: #72777e;
+            --md-sys-color-outline-variant: #c2c7ce;
+            --md-sys-color-success: #1b6d37;
+            --md-sys-color-success-container: #c4ebd0;
+            --md-sys-color-warning: #825500;
+            --md-sys-color-warning-container: #ffddb6;
+            
+            --md-shape-corner-extra-large: 24px;
+            --md-shape-corner-large: 16px;
+            --md-shape-corner-full: 9999px;
+            
+            --elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+            --elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+            --elevation-3: 0px 4px 12px 3px rgba(0, 0, 0, 0.1), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            padding: 16px 12px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 600px) {
+            body {
+                padding: 24px 20px 48px;
+            }
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .app-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #00639b, #0088d4);
+            color: white;
+            border-radius: var(--md-shape-corner-large);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: var(--elevation-2);
+            flex-shrink: 0;
+        }
+
+        .app-title h1 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .app-title p {
+            font-size: 0.8rem;
+            color: var(--md-sys-color-on-surface-variant);
+            font-weight: 500;
+        }
+
+        @media (min-width: 600px) {
+            .app-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 28px;
+            }
+            .app-title h1 {
+                font-size: 1.6rem;
+            }
+            .app-title p {
+                font-size: 0.9rem;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        @media (min-width: 680px) {
+            .header-actions {
+                width: auto;
+            }
+        }
+
+        .btn-m3 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: var(--md-shape-corner-full);
+            font-size: 0.825rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 44px; /* Optimal touch target on mobile */
+            flex: 1;
+        }
+
+        @media (min-width: 680px) {
+            .btn-m3 {
+                flex: none;
+                padding: 10px 18px;
+                font-size: 0.875rem;
+            }
+        }
+
+        .btn-m3-excel {
+            background-color: #107c41;
+            color: #ffffff;
+        }
+
+        .btn-m3-excel:hover {
+            background-color: #0b582e;
+            box-shadow: var(--elevation-1);
+        }
+
+        .btn-m3-tonal {
+            background-color: var(--md-sys-color-secondary-container);
+            color: #0d1d2a;
+        }
+
+        .btn-m3-tonal:hover {
+            box-shadow: var(--elevation-1);
+            filter: brightness(0.96);
+        }
+
+        .btn-m3-outlined {
+            background: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            color: var(--md-sys-color-primary);
+        }
+
+        .btn-m3-outlined:hover {
+            background-color: rgba(0, 99, 155, 0.05);
+        }
+
+        .hero-zone-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f3f7fc 100%);
+            border-radius: var(--md-shape-corner-extra-large);
+            padding: 20px 16px;
+            margin-bottom: 24px;
+            box-shadow: var(--elevation-2);
+            border: 1px solid rgba(0, 99, 155, 0.12);
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-zone-card {
+                grid-template-columns: 240px 1fr;
+                padding: 28px 32px;
+                gap: 28px;
+            }
+        }
+
+        .hero-chart-container {
+            position: relative;
+            width: 190px;
+            height: 190px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 600px) {
+            .hero-chart-container {
+                width: 220px;
+                height: 220px;
+            }
+        }
+
+        .ring-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: var(--md-sys-color-surface-container);
+            stroke-width: 18;
+        }
+
+        .ring-fill {
+            fill: none;
+            stroke: url(#zoneGradient);
+            stroke-width: 18;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ring-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .ring-percent {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--md-sys-color-primary);
+            line-height: 1;
+        }
+
+        .ring-subtext {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-details {
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-details {
+                text-align: left;
+            }
+        }
+
+        .hero-details h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 6px;
+        }
+
+        .hero-details p {
+            font-size: 0.85rem;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 16px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 520px) {
+            .kpi-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+        }
+
+        .kpi-card {
+            background-color: var(--md-sys-color-surface-card);
+            padding: 12px 10px;
+            border-radius: var(--md-shape-corner-large);
+            border: 1px solid var(--md-sys-color-surface-container);
+            box-shadow: var(--elevation-1);
+            text-align: center;
+        }
+
+        .kpi-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 680px) {
+            .section-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .section-header h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        @media (min-width: 680px) {
+            .toolbar-actions {
+                width: auto;
+            }
+        }
+
+        .sort-pill-container {
+            display: flex;
+            background-color: var(--md-sys-color-surface-container);
+            padding: 4px;
+            border-radius: var(--md-shape-corner-full);
+            gap: 2px;
+            flex: 1;
+        }
+
+        @media (min-width: 680px) {
+            .sort-pill-container {
+                flex: none;
+            }
+        }
+
+        .sort-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: var(--md-shape-corner-full);
+            font-size: 0.775rem;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            color: var(--md-sys-color-on-surface-variant);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 38px;
+            flex: 1;
+        }
+
+        .sort-pill.active {
+            background-color: var(--md-sys-color-surface-card);
+            color: var(--md-sys-color-primary);
+            box-shadow: var(--elevation-1);
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        @media (min-width: 680px) {
+            .search-box {
+                width: 220px;
+            }
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 38px;
+            border-radius: var(--md-shape-corner-full);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-card);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s ease;
+            min-height: 42px;
+        }
+
+        .search-box input:focus {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 3px rgba(0, 99, 155, 0.15);
+        }
+
+        .search-box span {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 18px;
+        }
+
+        .stores-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 580px) {
+            .stores-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        .store-card {
+            background-color: var(--md-sys-color-surface-card);
+            border-radius: var(--md-shape-corner-extra-large);
+            padding: 16px;
+            box-shadow: var(--elevation-1);
+            border: 1px solid var(--md-sys-color-surface-container);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .store-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-3);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: 16px;
+            background: linear-gradient(135deg, #00639b, #0088d4);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: var(--md-shape-corner-full);
+            box-shadow: var(--elevation-1);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rank-badge.top1 {
+            background: linear-gradient(135deg, #e3a008, #faca15);
+            color: #422006;
+        }
+
+        .store-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+            margin-top: 4px;
+        }
+
+        .store-name-group {
+            flex: 1;
+        }
+
+        .store-id-chip {
+            display: inline-block;
+            background-color: var(--md-sys-color-secondary-container);
+            color: #0d1d2a;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--md-shape-corner-full);
+            margin-bottom: 4px;
+        }
+
+        .store-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface);
+            line-height: 1.2;
+        }
+
+        .store-ring-wrapper {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            flex-shrink: 0;
+        }
+
+        .store-ring-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .store-ring-bg {
+            fill: none;
+            stroke: var(--md-sys-color-surface-container);
+            stroke-width: 10;
+        }
+
+        .store-ring-fill {
+            fill: none;
+            stroke: var(--md-sys-color-primary);
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-dasharray: 220;
+            stroke-dashoffset: 220;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+        }
+
+        .store-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .store-stats-row {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--md-sys-color-surface);
+            padding: 10px 12px;
+            border-radius: var(--md-shape-corner-large);
+            margin-bottom: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .stat-val {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background-color: var(--md-sys-color-surface-container);
+            padding: 4px 6px;
+            border-radius: var(--md-shape-corner-full);
+        }
+
+        .counter-btn {
+            width: 44px; /* Touch friendly on mobile */
+            height: 44px;
+            border-radius: var(--md-shape-corner-full);
+            border: none;
+            background-color: var(--md-sys-color-surface-card);
+            color: var(--md-sys-color-primary);
+            font-size: 1.4rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--elevation-1);
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .counter-btn:hover {
+            background-color: var(--md-sys-color-primary);
+            color: white;
+        }
+
+        .counter-btn:active {
+            transform: scale(0.92);
+        }
+
+        .counter-input-container {
+            flex: 1;
+            text-align: center;
+        }
+
+        .counter-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--md-sys-color-on-surface);
+            outline: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: var(--md-shape-corner-full);
+            font-size: 0.725rem;
+            font-weight: 700;
+            margin-top: 10px;
+            align-self: flex-start;
+        }
+
+        .status-badge.complete {
+            background-color: var(--md-sys-color-success-container);
+            color: #0a3818;
+        }
+
+        .status-badge.progress {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .status-badge.zero {
+            background-color: #fce8e6;
+            color: #c5221f;
+        }
+
+        .status-badge.no-cuota {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+      <linearGradient id="zoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00639b" />
+        <stop offset="100%" stop-color="#00a8ff" />
+      </linearGradient>
+    </svg>
+
+    <header class="app-header">
+        <div class="app-title-group">
+            <div class="app-icon">
+                <span class="material-symbols-rounded">analytics</span>
+            </div>
+            <div class="app-title">
+                <h1>Dashboard Ventas 80 Aniversario</h1>
+                <p>Seguimiento e Ingreso Dinámico de Pedidos por Tienda</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-m3 btn-m3-outlined" onclick="resetData()">
+                <span class="material-symbols-rounded" style="font-size: 18px;">restart_alt</span> Restablecer
+            </button>
+            <button class="btn-m3 btn-m3-excel" onclick="exportExcel()">
+                <span class="material-symbols-rounded" style="font-size: 18px;">description</span> Excel (.xlsx)
+            </button>
+            <button class="btn-m3 btn-m3-tonal" onclick="exportData()">
+                <span class="material-symbols-rounded" style="font-size: 18px;">download</span> CSV
+            </button>
+        </div>
+    </header>
+
+    <section class="hero-zone-card">
+        <div class="hero-chart-container">
+            <svg class="ring-svg" viewBox="0 0 200 200">
+                <circle class="ring-bg" cx="100" cy="100" r="90"></circle>
+                <circle id="zoneRingFill" class="ring-fill" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="ring-center-text">
+                <div id="zonePercent" class="ring-percent">0%</div>
+                <div class="ring-subtext">AVANCE GENERAL</div>
+            </div>
+        </div>
+
+        <div class="hero-details">
+            <h2>Avance General de la Zona</h2>
+            <p>Monitoreo global en tiempo real de la meta acumulada del Modelo Aniversario en todas las sucursales.</p>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Cuota Total</div>
+                    <div id="kpiTotalCuota" class="kpi-value">159</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Pedidos 2026</div>
+                    <div id="kpiTotalPedidos" class="kpi-value">32</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Faltante</div>
+                    <div id="kpiFaltante" class="kpi-value">127</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Tiendas Activas</div>
+                    <div id="kpiActiveStores" class="kpi-value">11 / 14</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-header">
+        <div class="section-title-group">
+            <h3>
+                <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">storefront</span>
+                Avance por Sucursal (14 Tiendas)
+            </h3>
+        </div>
+
+        <div class="toolbar-actions">
+            <div class="sort-pill-container">
+                <button id="btnSortNum" class="sort-pill active" onclick="setSortMode('numeric')">
+                    <span class="material-symbols-rounded" style="font-size: 16px;">format_list_numbered</span>
+                    Número (#)
+                </button>
+                <button id="btnSortRank" class="sort-pill" onclick="setSortMode('ranking')">
+                    <span class="material-symbols-rounded" style="font-size: 16px;">leaderboard</span>
+                    Ranking (%)
+                </button>
+            </div>
+
+            <div class="search-box">
+                <span class="material-symbols-rounded">search</span>
+                <input type="text" id="searchInput" placeholder="Buscar sucursal..." oninput="filterStores()">
+            </div>
+        </div>
+    </div>
+
+    <div class="stores-grid" id="storesGrid"></div>
+
+    <footer>
+        Tiendas Atlas - Zona 4 &bull; Dashboard Interactivo 80 Aniversario &bull; Material You UI
+    </footer>
+
+    <script>
+        // Initial store data matching exact Excel sheet (La Cuspide cuota = null/0)
+        const initialStores = [
+            { id: "2", name: "2 - CUAUTITLAN", cuota: 10, pedidos: 4 },
+            { id: "9", name: "9 - NAUCALPAN", cuota: 16, pedidos: 4 },
+            { id: "28", name: "28 - VALLEJO", cuota: 20, pedidos: 0 },
+            { id: "186", name: "186 - PLAZA SAN MARCOS", cuota: 13, pedidos: 2 },
+            { id: "207", name: "207 - ROSARIO", cuota: 20, pedidos: 2 },
+            { id: "222", name: "222 - TOWN CENTER NICOLAS R", cuota: 15, pedidos: 4 },
+            { id: "224", name: "224 - SANTA MONICA", cuota: 8, pedidos: 2 },
+            { id: "280", name: "280 - PLAZA FORTUNA", cuota: 10, pedidos: 2 },
+            { id: "316", name: "316 - ARBOLEDAS", cuota: 8, pedidos: 2 },
+            { id: "321", name: "321 - GRAN TERRAZA", cuota: 6, pedidos: 0 },
+            { id: "370", name: "370 - PLAZA TLALNEPANTLA", cuota: 13, pedidos: 0 },
+            { id: "406", name: "406 - PARQUE VIA VALLEJO", cuota: 10, pedidos: 2 },
+            { id: "437", name: "437 - LA CUSPIDE", cuota: 0, pedidos: 2 },
+            { id: "467", name: "467 - CENTRO SAN MIGUEL", cuota: 10, pedidos: 6 }
+        ];
+
+        let stores = JSON.parse(localStorage.getItem('atlas_pedidos_2026_v2')) || JSON.parse(JSON.stringify(initialStores));
+        let currentSortMode = 'numeric';
+
+        const storesGrid = document.getElementById('storesGrid');
+
+        function setSortMode(mode) {
+            currentSortMode = mode;
+            document.getElementById('btnSortNum').classList.toggle('active', mode === 'numeric');
+            document.getElementById('btnSortRank').classList.toggle('active', mode === 'ranking');
+            renderStores();
+        }
+
+        function getSortedStores() {
+            let sorted = stores.map((s, idx) => ({ ...s, originalIndex: idx }));
+
+            if (currentSortMode === 'numeric') {
+                sorted.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+            } else if (currentSortMode === 'ranking') {
+                sorted.sort((a, b) => {
+                    const pctA = a.cuota > 0 ? (a.pedidos / a.cuota) : 0;
+                    const pctB = b.cuota > 0 ? (b.pedidos / b.cuota) : 0;
+                    if (pctB !== pctA) return pctB - pctA;
+                    return b.pedidos - a.pedidos;
+                });
+            }
+            return sorted;
+        }
+
+        function renderStores() {
+            storesGrid.innerHTML = '';
+            const sortedList = getSortedStores();
+
+            sortedList.forEach((store, rankIdx) => {
+                const index = store.originalIndex;
+                const hasCuota = store.cuota > 0;
+                const percent = hasCuota ? Math.min(100, Math.round((store.pedidos / store.cuota) * 100)) : 100;
+                
+                const card = document.createElement('div');
+                card.className = 'store-card';
+                card.dataset.id = store.id;
+                card.dataset.name = store.name.toLowerCase();
+
+                let statusClass = 'progress';
+                let statusIcon = 'pending';
+                let statusText = 'En Progreso';
+
+                if (!hasCuota) {
+                    statusClass = 'no-cuota';
+                    statusIcon = 'add_task';
+                    statusText = 'Aporte Extra (Sin Cuota)';
+                } else if (store.pedidos === 0) {
+                    statusClass = 'zero';
+                    statusIcon = 'warning';
+                    statusText = 'Sin Pedidos';
+                } else if (store.pedidos >= store.cuota) {
+                    statusClass = 'complete';
+                    statusIcon = 'check_circle';
+                    statusText = '¡Cuota Alcanzada!';
+                }
+
+                let rankBadgeHtml = '';
+                if (currentSortMode === 'ranking') {
+                    const isTop = rankIdx === 0;
+                    rankBadgeHtml = `<div class="rank-badge ${isTop ? 'top1' : ''}">
+                        <span class="material-symbols-rounded" style="font-size: 14px;">${isTop ? 'workspace_premium' : 'military_tech'}</span>
+                        Lugar #${rankIdx + 1}
+                    </div>`;
+                }
+
+                const cuotaDisplay = hasCuota ? store.cuota : 'N/A';
+                const faltanDisplay = hasCuota ? Math.max(0, store.cuota - store.pedidos) : 0;
+                const percentDisplay = hasCuota ? `${percent}%` : 'S/C';
+
+                card.innerHTML = `
+                    ${rankBadgeHtml}
+                    <div>
+                        <div class="store-header">
+                            <div class="store-name-group">
+                                <span class="store-id-chip">Sucursal #${store.id}</span>
+                                <div class="store-title">${store.name}</div>
+                            </div>
+                            <div class="store-ring-wrapper">
+                                <svg class="store-ring-svg" viewBox="0 0 80 80">
+                                    <circle class="store-ring-bg" cx="40" cy="40" r="35"></circle>
+                                    <circle id="ring-${index}" class="store-ring-fill" cx="40" cy="40" r="35"></circle>
+                                </svg>
+                                <div id="ring-text-${index}" class="store-ring-text">${percentDisplay}</div>
+                            </div>
+                        </div>
+
+                        <div class="store-stats-row">
+                            <div class="stat-item">
+                                <div class="stat-label">Cuota</div>
+                                <div class="stat-val">${cuotaDisplay}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Pedidos</div>
+                                <div class="stat-val" id="pedidos-val-${index}">${store.pedidos}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Faltan</div>
+                                <div class="stat-val" id="faltan-val-${index}">${faltanDisplay}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="control-group">
+                            <button class="counter-btn" onclick="updatePedidos(${index}, -1)">-</button>
+                            <div class="counter-input-container">
+                                <input type="number" class="counter-input" id="input-${index}" value="${store.pedidos}" min="0" onchange="setPedidos(${index}, this.value)">
+                            </div>
+                            <button class="counter-btn" onclick="updatePedidos(${index}, 1)">+</button>
+                        </div>
+
+                        <div id="badge-${index}" class="status-badge ${statusClass}">
+                            <span class="material-symbols-rounded" style="font-size: 16px;">${statusIcon}</span>
+                            ${statusText}
+                        </div>
+                    </div>
+                `;
+                storesGrid.appendChild(card);
+            });
+
+            updateAllRingsAndKPIs();
+            filterStores();
+        }
+
+        function updatePedidos(index, delta) {
+            const oldVal = stores[index].pedidos;
+            let newVal = Math.max(0, oldVal + delta);
+            stores[index].pedidos = newVal;
+
+            if (stores[index].cuota > 0 && newVal >= stores[index].cuota && oldVal < stores[index].cuota) {
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+            }
+
+            saveAndSync();
+        }
+
+        function setPedidos(index, val) {
+            let newVal = Math.max(0, parseInt(val) || 0);
+            stores[index].pedidos = newVal;
+            saveAndSync();
+        }
+
+        function saveAndSync() {
+            localStorage.setItem('atlas_pedidos_2026_v2', JSON.stringify(stores));
+            if (currentSortMode === 'ranking') {
+                renderStores();
+            } else {
+                updateAllRingsAndKPIs();
+            }
+        }
+
+        function updateAllRingsAndKPIs() {
+            let totalCuota = 0;
+            let totalPedidos = 0;
+            let activeStoresCount = 0;
+
+            stores.forEach((store, index) => {
+                totalCuota += store.cuota;
+                totalPedidos += store.pedidos;
+                if (store.pedidos > 0) activeStoresCount++;
+
+                const hasCuota = store.cuota > 0;
+                const percent = hasCuota ? Math.min(100, Math.round((store.pedidos / store.cuota) * 100)) : 100;
+                
+                const ringCircle = document.getElementById(`ring-${index}`);
+                const ringText = document.getElementById(`ring-text-${index}`);
+                const pedidosVal = document.getElementById(`pedidos-val-${index}`);
+                const faltanVal = document.getElementById(`faltan-val-${index}`);
+                const badge = document.getElementById(`badge-${index}`);
+                const inputVal = document.getElementById(`input-${index}`);
+
+                if (inputVal) inputVal.value = store.pedidos;
+
+                if (ringCircle) {
+                    const circumference = 2 * Math.PI * 35;
+                    const fillPercent = hasCuota ? percent : (store.pedidos > 0 ? 100 : 0);
+                    const offset = circumference - (fillPercent / 100) * circumference;
+                    ringCircle.style.strokeDashoffset = offset;
+
+                    if (!hasCuota) {
+                        ringCircle.style.stroke = '#51606f';
+                    } else if (percent >= 100) {
+                        ringCircle.style.stroke = '#1b6d37';
+                    } else if (percent > 0) {
+                        ringCircle.style.stroke = '#00639b';
+                    } else {
+                        ringCircle.style.stroke = '#ba1a1a';
+                    }
+                }
+
+                if (ringText) ringText.innerText = hasCuota ? `${percent}%` : 'S/C';
+                if (pedidosVal) pedidosVal.innerText = store.pedidos;
+                if (faltanVal) faltanVal.innerText = hasCuota ? Math.max(0, store.cuota - store.pedidos) : 0;
+
+                if (badge) {
+                    if (!hasCuota) {
+                        badge.className = 'status-badge no-cuota';
+                        badge.innerHTML = `<span class="material-symbols-rounded" style="font-size: 16px;">add_task</span> Aporte Extra (Sin Cuota)`;
+                    } else if (store.pedidos === 0) {
+                        badge.className = 'status-badge zero';
+                        badge.innerHTML = `<span class="material-symbols-rounded" style="font-size: 16px;">warning</span> Sin Pedidos`;
+                    } else if (store.pedidos >= store.cuota) {
+                        badge.className = 'status-badge complete';
+                        badge.innerHTML = `<span class="material-symbols-rounded" style="font-size: 16px;">check_circle</span> ¡Cuota Alcanzada!`;
+                    } else {
+                        badge.className = 'status-badge progress';
+                        badge.innerHTML = `<span class="material-symbols-rounded" style="font-size: 16px;">pending</span> En Progreso`;
+                    }
+                }
+            });
+
+            const generalCuota = 159; 
+            const zonePercent = Math.min(100, Math.round((totalPedidos / generalCuota) * 100));
+            document.getElementById('zonePercent').innerText = `${zonePercent}%`;
+            document.getElementById('kpiTotalCuota').innerText = generalCuota;
+            document.getElementById('kpiTotalPedidos').innerText = totalPedidos;
+            document.getElementById('kpiFaltante').innerText = Math.max(0, generalCuota - totalPedidos);
+            document.getElementById('kpiActiveStores').innerText = `${activeStoresCount} / ${stores.length}`;
+
+            const zoneRingFill = document.getElementById('zoneRingFill');
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (zonePercent / 100) * circumference;
+            zoneRingFill.style.strokeDashoffset = offset;
+        }
+
+        function filterStores() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.store-card');
+            cards.forEach(card => {
+                if (card.dataset.name.includes(query) || card.dataset.id.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function resetData() {
+            if (confirm('¿Deseas restablecer todos los valores de pedidos al estado inicial del Excel?')) {
+                stores = JSON.parse(JSON.stringify(initialStores));
+                localStorage.removeItem('atlas_pedidos_2026_v2');
+                renderStores();
+            }
+        }
+
+        // Native .xlsx Export via SheetJS
+        function exportExcel() {
+            const dataToExport = stores.map(s => {
+                const hasCuota = s.cuota > 0;
+                const percent = hasCuota ? Math.round((s.pedidos / s.cuota) * 100) : 'S/C';
+                const faltan = hasCuota ? Math.max(0, s.cuota - s.pedidos) : 0;
+                return {
+                    "ID Sucursal": parseInt(s.id),
+                    "Sucursal": s.name,
+                    "Cuota Pzas 2026": hasCuota ? s.cuota : "Sin Cuota",
+                    "Pedidos 2026": s.pedidos,
+                    "Faltante": faltan,
+                    "% Cumplimiento": hasCuota ? `${percent}%` : "S/C"
+                };
+            });
+
+            // Calculate totals row
+            let totalPedidos = stores.reduce((a, b) => a + b.pedidos, 0);
+            let totalCuota = 159;
+            let totalFaltante = Math.max(0, totalCuota - totalPedidos);
+            let totalPercent = Math.round((totalPedidos / totalCuota) * 100);
+
+            dataToExport.push({}); // Empty row
+            dataToExport.push({
+                "ID Sucursal": "",
+                "Sucursal": "TOTAL MODELO ANIVERSARIO",
+                "Cuota Pzas 2026": totalCuota,
+                "Pedidos 2026": totalPedidos,
+                "Faltante": totalFaltante,
+                "% Cumplimiento": `${totalPercent}%`
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            
+            // Adjust column widths automatically
+            worksheet['!cols'] = [
+                { wch: 12 },
+                { wch: 32 },
+                { wch: 18 },
+                { wch: 15 },
+                { wch: 12 },
+                { wch: 18 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Avance Pedidos 2026");
+            XLSX.writeFile(workbook, "Avance_Pedidos_80_Aniversario.xlsx");
+        }
+
+        function exportData() {
+            let csv = 'ID,Sucursal,Cuota 2026,Pedidos 2026,Faltantes,Cumplimiento (%)\n';
+            stores.forEach(s => {
+                const hasCuota = s.cuota > 0;
+                const percent = hasCuota ? Math.round((s.pedidos / s.cuota) * 100) : 'S/C';
+                const faltan = hasCuota ? Math.max(0, s.cuota - s.pedidos) : 0;
+                csv += `"${s.id}","${s.name}",${hasCuota ? s.cuota : 'N/A'},${s.pedidos},${faltan},${percent}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'avance_pedidos_80_aniversario.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        renderStores();
+    </script>
+</body>
+</html>
